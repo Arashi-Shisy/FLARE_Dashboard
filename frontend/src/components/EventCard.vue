@@ -35,6 +35,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { api } from '../utils/api'
+import { toast } from '../utils/toast'   // ← 追加
 
 const props = defineProps({
   event: { type: Object, required: true },
@@ -49,11 +50,18 @@ async function loadMe(){
 async function removeEvent(){
   try{
     await api.delete(`/api/events/${props.event.id}`)
-    // 親で再取得する前提。必要なら emit('removed', props.event.id) で通知
+    // 成功トースト → 少し待ってリロード
+    toast('削除しました', 'success')
+    setTimeout(() => {
+      window.location.reload()
+    }, 300)
   }catch(e){
-    /* confirm キャンセル等は無視 */
+    // confirm キャンセル時は何もしない
+    if (e && e.cancelled) return
+    toast('削除に失敗しました', 'error')
   }
 }
 
 onMounted(loadMe)
 </script>
+
