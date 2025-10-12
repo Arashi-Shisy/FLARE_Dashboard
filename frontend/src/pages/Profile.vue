@@ -18,8 +18,8 @@
       </div>
 
       <div style="margin-top:1rem; display:flex; gap:.5rem">
-        <button @click="save">保存</button>
-        <button @click="logout" style="background:#2a2a2a;border:1px solid #444;color:#ddd">ログアウト</button>
+        <button @click="save" class="btn btn-primary">保存</button>
+        <button @click="logout" class="btn btn-neutral">ログアウト</button>
       </div>
     </div>
   </div>
