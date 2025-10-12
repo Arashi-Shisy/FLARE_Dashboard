@@ -8,21 +8,23 @@ from flask_socketio import SocketIO, emit
 from passlib.hash import bcrypt
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.exceptions import UnsupportedMediaType
 
 # --------------------
 # Config
 # --------------------
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///flaredb.sqlite")
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
-ASYNC_MODE = os.environ.get("SOCKETIO_ASYNC_MODE", "eventlet")
-MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "5"))  # ★ 既定5MB
+ASYNC_MODE = os.environ.get("ASYNC_MODE", "threading")
+MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "5"))  # default 5MB
+DISABLE_SCHEDULER = os.environ.get("DISABLE_SCHEDULER", "0") == "1"
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=31)
-# ★ リクエスト全体の最大サイズ（画像含む）
+# request size limit (for images, etc.)
 app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
 
 UPLOAD_DIR = os.path.abspath(os.environ.get("UPLOAD_DIR", os.path.join(os.getcwd(), "uploads")))
@@ -34,16 +36,22 @@ CORS(app, supports_credentials=True)
 db = SQLAlchemy(app)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode=ASYNC_MODE)
 
+# APScheduler runs in Asia/Tokyo; pass aware JST run_date
 scheduler = BackgroundScheduler(timezone="Asia/Tokyo")
-scheduler.start()
+if not DISABLE_SCHEDULER:
+    scheduler.start()
 
 # --------------------
 # Time helpers
 # --------------------
 def now_jst():
+    # display helper; never stored in DB
     return datetime.utcnow() + timedelta(hours=9)
 
 def iso_z(dt: datetime) -> str:
+    """
+    Always return ISO-8601 with Z (UTC). JS側はこれをローカル（JST）に正しく変換できる。
+    """
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     else:
@@ -51,14 +59,25 @@ def iso_z(dt: datetime) -> str:
     return dt.isoformat().replace("+00:00", "Z")
 
 def parse_iso(s: str) -> datetime:
-    s2 = s.replace("Z", "+00:00")
+    """
+    フロント（datetime-local→toISOString）から来るISOをUTC naiveへ正規化。
+    """
+    s2 = s.replace("Z", "+00:00") if isinstance(s, str) else s
     dt = datetime.fromisoformat(s2)
     if dt.tzinfo is None:
+        # naive → そのままUTCとみなす
         return dt
+    # aware → UTCへ変換してtzinfoを剥がす
     return dt.astimezone(timezone.utc).replace(tzinfo=None)
 
 def avatar_url_for(user_id: int, has_avatar: bool):
     return f"/api/avatar/{user_id}" if has_avatar else None
+
+def utc_naive_to_jst_aware(dt_utc_naive: datetime) -> datetime:
+    """
+    DBはUTC naive。APSchedulerに渡す時刻はスケジューラTZ（JST）のawareを渡す。
+    """
+    return dt_utc_naive.replace(tzinfo=timezone.utc).astimezone(timezone(timedelta(hours=9)))
 
 # --------------------
 # Models
@@ -126,16 +145,23 @@ def schedule_event_reminders(event_id):
     if not ev:
         return
     for hours in (24, 1):
-        run_time = ev.start_at - timedelta(hours=hours)
-        if run_time > datetime.utcnow():
-            job_id = f"reminder_{event_id}_{hours}h"
-            try:
-                scheduler.remove_job(job_id)
-            except Exception:
-                pass
-            scheduler.add_job(func=emit_event_reminder, trigger="date",
-                              run_date=run_time, id=job_id,
-                              args=[event_id, hours])
+        run_time_utc_naive = ev.start_at - timedelta(hours=hours)
+        if run_time_utc_naive <= datetime.utcnow():
+            continue  # 過去は予約しない
+        run_time_jst_aware = utc_naive_to_jst_aware(run_time_utc_naive)
+        job_id = f"reminder_{event_id}_{hours}h"
+        try:
+            scheduler.remove_job(job_id)
+        except Exception:
+            pass
+        scheduler.add_job(
+            func=emit_event_reminder,
+            trigger="date",
+            run_date=run_time_jst_aware,  # JST aware
+            id=job_id,
+            args=[event_id, hours],
+            replace_existing=True
+        )
 
 def emit_event_reminder(event_id, hours):
     attendees = EventAttendee.query.filter_by(event_id=event_id).all()
@@ -183,13 +209,18 @@ def register():
         return jsonify({"error":"username and password required"}), 400
     if User.query.filter_by(username=username).first():
         return jsonify({"error":"username already taken"}), 400
+    # bcrypt 72byte制限対策（超過時はtruncate）
+    if isinstance(password, str) and len(password.encode("utf-8")) > 72:
+        password = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
     pw_hash = bcrypt.hash(password)
     user = User(username=username, pw_hash=pw_hash)
     db.session.add(user)
     db.session.commit()
     session["user_id"] = user.id
     session.permanent = True
-    return jsonify({"message":"registered","user":{"id":user.id,"username":user.username,"avatar_url":avatar_url_for(user.id, bool(user.avatar_path))}})
+    return jsonify({"message":"registered",
+                    "user":{"id":user.id,"username":user.username,
+                            "avatar_url":avatar_url_for(user.id, bool(user.avatar_path))}})
 
 @app.post("/api/login")
 def login():
@@ -203,7 +234,9 @@ def login():
     session.permanent = True
     user.last_active_at = datetime.utcnow()
     db.session.commit()
-    return jsonify({"message":"logged_in","user":{"id":user.id,"username":user.username,"avatar_url":avatar_url_for(user.id, bool(user.avatar_path))}})
+    return jsonify({"message":"logged_in",
+                    "user":{"id":user.id,"username":user.username,
+                            "avatar_url":avatar_url_for(user.id, bool(user.avatar_path))}})
 
 @app.get("/api/me")
 def me():
@@ -229,9 +262,26 @@ def logout():
 @login_required
 def update_me():
     user = current_user()
-    # multipart/form-data または JSON
-    if request.files:
-        f = request.files.get("avatar")
+
+    # --- フォーム/ファイルは Content-Type を確認して安全に扱う ---
+    files = {}
+    form_data = None
+    try:
+        # フォーム系 MIME のときだけ触る（それ以外だと 415 を起こしうる）
+        if request.mimetype and (
+            request.mimetype.startswith("multipart/form-data")
+            or request.mimetype.startswith("application/x-www-form-urlencoded")
+        ):
+            files = request.files or {}
+            form_data = request.form or None
+    except UnsupportedMediaType:
+        # MIME がフォーム系でないのに触ってしまった場合は握りつぶす
+        files = {}
+        form_data = None
+
+    # --- 画像アップロードがあれば保存 ---
+    if "avatar" in files:
+        f = files.get("avatar")
         if f and f.filename:
             filename = secure_filename(f.filename)
             ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "png"
@@ -239,16 +289,22 @@ def update_me():
             path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             f.save(path)
             user.avatar_path = path
-    data = request.form if request.form else (request.json or {})
+
+    # --- 残りの項目は form -> json の順で取り込む（json は silent で） ---
+    data = form_data if form_data is not None else (request.get_json(silent=True) or {})
+
     birthday = data.get("birthday")
     notifications_enabled = data.get("notifications_enabled")
+
     if birthday is not None:
         user.birthday = birthday
     if notifications_enabled is not None:
         user.notifications_enabled = bool(str(notifications_enabled).lower() in ("1","true","yes","on"))
+
     user.last_active_at = datetime.utcnow()
     db.session.commit()
-    return jsonify({"message":"updated","avatar_url": avatar_url_for(user.id, bool(user.avatar_path))})
+
+    return jsonify({"message": "updated", "avatar_url": avatar_url_for(user.id, bool(user.avatar_path))})
 
 @app.get("/api/avatar/<int:user_id>")
 def get_avatar(user_id):
@@ -333,12 +389,14 @@ def list_events():
 @login_required
 def events_this_week():
     user = current_user()
+    # JST week window: Monday 00:00:00 JST → UTC naive
     jst_now = now_jst()
-    start = jst_now - timedelta(days=jst_now.weekday())
-    end = start + timedelta(days=7)
-    start_utc = start - timedelta(hours=9)
-    end_utc = end - timedelta(hours=9)
-    items = Event.query.filter(Event.start_at >= start_utc, Event.start_at < end_utc).order_by(Event.start_at.asc()).all()
+    start_jst = (jst_now - timedelta(days=jst_now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+    end_jst = start_jst + timedelta(days=7)
+    start_utc_naive = start_jst - timedelta(hours=9)
+    end_utc_naive = end_jst - timedelta(hours=9)
+    items = Event.query.filter(Event.start_at >= start_utc_naive, Event.start_at < end_utc_naive)\
+                       .order_by(Event.start_at.asc()).all()
     res = [serialize_event(e, user_id=user.id) for e in items]
     return jsonify({"items": res})
 
@@ -517,6 +575,7 @@ def delete_chat(msg_id):
 @app.get("/api/home")
 @login_required
 def home():
+    # Announcements (latest 5)
     anns = Announcement.query.order_by(Announcement.created_at.desc()).limit(5).all()
     ann_res = [{
         "id": a.id,
@@ -526,13 +585,16 @@ def home():
         "user_avatar_url": avatar_url_for(a.user_id, bool(User.query.get(a.user_id) and User.query.get(a.user_id).avatar_path)),
         "created_at": iso_z(a.created_at)
     } for a in anns]
+
+    # This week's events (JST window)
     user = current_user()
     jst_now = now_jst()
-    start = jst_now - timedelta(days=jst_now.weekday())
-    end = start + timedelta(days=7)
-    start_utc = start - timedelta(hours=9)
-    end_utc = end - timedelta(hours=9)
-    events = Event.query.filter(Event.start_at >= start_utc, Event.start_at < end_utc).order_by(Event.start_at.asc()).all()
+    start_jst = (jst_now - timedelta(days=jst_now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+    end_jst = start_jst + timedelta(days=7)
+    start_utc_naive = start_jst - timedelta(hours=9)
+    end_utc_naive = end_jst - timedelta(hours=9)
+    events = Event.query.filter(Event.start_at >= start_utc_naive, Event.start_at < end_utc_naive)\
+                        .order_by(Event.start_at.asc()).all()
     ev_res = [serialize_event(e, user_id=user.id) for e in events]
     return jsonify({"announcements": ann_res, "events": ev_res})
 
@@ -568,7 +630,7 @@ def init_db():
 @app.before_request
 def touch_last_active():
     if "user_id" in session:
-        session.permanent = True
+        session.permanent = True  # refresh expiry
 
 if __name__ == "__main__":
     with app.app_context():
