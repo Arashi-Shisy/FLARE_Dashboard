@@ -28,6 +28,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { api } from '../utils/api'
+import { toast } from '../utils/toast'
 
 const me = ref(null)
 const form = ref({ birthday: '', notifications_enabled: false })
@@ -42,11 +43,9 @@ async function load(){
     form.value.notifications_enabled = !!me.value.notifications_enabled
   }
 }
-
 function onFile(e){
   avatarFile.value = e.target.files?.[0] || null
 }
-
 async function save(){
   const fd = new FormData()
   fd.append('birthday', form.value.birthday || '')
@@ -54,22 +53,23 @@ async function save(){
   if (avatarFile.value){
     fd.append('avatar', avatarFile.value)
   }
-  const { data } = await api.post('/api/me', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-  if (data?.avatar_url){
-    me.value.avatar_url = data.avatar_url
-  }
-  await load()
-}
-
-async function logout(){
   try {
-    await api.post('/api/logout')
+    const { data } = await api.post('/api/me', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+    if (data?.avatar_url) me.value.avatar_url = data.avatar_url
+    await load()
+    toast('保存しました', 'success')
   } catch (e) {
-    // 失敗してもクライアント側のセッションは消したいので遷移は続行
+    const status = e?.response?.status
+    if (status === 413) {
+      toast('ファイルサイズが大きすぎます', 'error')
+    } else {
+      toast('保存に失敗しました', 'error')
+    }
   }
-  // ルーターを使っているなら、router.push('/') でもOK
+}
+async function logout(){
+  try { await api.post('/api/logout') } catch {}
   window.location.assign('/')
 }
-
 onMounted(load)
 </script>

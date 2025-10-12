@@ -7,16 +7,24 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_socketio import SocketIO, emit
 from passlib.hash import bcrypt
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import RequestEntityTooLarge
 
+# --------------------
+# Config
+# --------------------
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///flaredb.sqlite")
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret")
 ASYNC_MODE = os.environ.get("SOCKETIO_ASYNC_MODE", "eventlet")
+MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "5"))  # ★ 既定5MB
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = SECRET_KEY
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=31)
+# ★ リクエスト全体の最大サイズ（画像含む）
+app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
+
 UPLOAD_DIR = os.path.abspath(os.environ.get("UPLOAD_DIR", os.path.join(os.getcwd(), "uploads")))
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
@@ -29,6 +37,9 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode=ASYNC_MODE)
 scheduler = BackgroundScheduler(timezone="Asia/Tokyo")
 scheduler.start()
 
+# --------------------
+# Time helpers
+# --------------------
 def now_jst():
     return datetime.utcnow() + timedelta(hours=9)
 
@@ -40,8 +51,6 @@ def iso_z(dt: datetime) -> str:
     return dt.isoformat().replace("+00:00", "Z")
 
 def parse_iso(s: str) -> datetime:
-    if not isinstance(s, str):
-        raise ValueError("datetime string required")
     s2 = s.replace("Z", "+00:00")
     dt = datetime.fromisoformat(s2)
     if dt.tzinfo is None:
@@ -51,12 +60,15 @@ def parse_iso(s: str) -> datetime:
 def avatar_url_for(user_id: int, has_avatar: bool):
     return f"/api/avatar/{user_id}" if has_avatar else None
 
+# --------------------
+# Models
+# --------------------
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     pw_hash = db.Column(db.String(255), nullable=False)
     avatar_path = db.Column(db.String(255))
-    birthday = db.Column(db.String(10))
+    birthday = db.Column(db.String(10))  # YYYY-MM-DD
     notifications_enabled = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_active_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -70,8 +82,8 @@ class Announcement(db.Model):
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
-    start_at = db.Column(db.DateTime, nullable=False)
-    end_at = db.Column(db.DateTime, nullable=False)
+    start_at = db.Column(db.DateTime, nullable=False)  # naive UTC
+    end_at = db.Column(db.DateTime, nullable=False)    # naive UTC
     description = db.Column(db.Text, default="")
     location = db.Column(db.String(255), default="")
     url = db.Column(db.String(255), default="")
@@ -91,6 +103,9 @@ class ChatMessage(db.Model):
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# --------------------
+# Utils
+# --------------------
 def current_user():
     uid = session.get("user_id")
     if not uid:
@@ -156,6 +171,9 @@ def serialize_attendee(a: EventAttendee):
         "joined_at": iso_z(a.created_at),
     }
 
+# --------------------
+# Routes: Auth
+# --------------------
 @app.post("/api/register")
 def register():
     data = request.json or {}
@@ -211,6 +229,7 @@ def logout():
 @login_required
 def update_me():
     user = current_user()
+    # multipart/form-data または JSON
     if request.files:
         f = request.files.get("avatar")
         if f and f.filename:
@@ -239,6 +258,9 @@ def get_avatar(user_id):
     dirn, fname = os.path.split(u.avatar_path)
     return send_from_directory(dirn, fname)
 
+# --------------------
+# Routes: Announcements
+# --------------------
 @app.get("/api/announcements")
 @login_required
 def list_ann():
@@ -290,6 +312,9 @@ def delete_ann(ann_id):
     db.session.commit()
     return jsonify({"message":"deleted"})
 
+# --------------------
+# Routes: Events
+# --------------------
 @app.get("/api/events")
 @login_required
 def list_events():
@@ -337,6 +362,7 @@ def create_event():
                created_by=user.id)
     db.session.add(ev)
     db.session.commit()
+    # creator auto-join
     att = EventAttendee(user_id=user.id, event_id=ev.id)
     db.session.add(att)
     db.session.commit()
@@ -432,6 +458,9 @@ def event_attendees(event_id):
         "count": len(rows)
     })
 
+# --------------------
+# Routes: Chat
+# --------------------
 @app.get("/api/chat")
 @login_required
 def list_chat():
@@ -482,6 +511,9 @@ def delete_chat(msg_id):
     db.session.commit()
     return jsonify({"message":"deleted"})
 
+# --------------------
+# Dashboard info
+# --------------------
 @app.get("/api/home")
 @login_required
 def home():
@@ -504,10 +536,24 @@ def home():
     ev_res = [serialize_event(e, user_id=user.id) for e in events]
     return jsonify({"announcements": ann_res, "events": ev_res})
 
+# --------------------
+# Socket.IO
+# --------------------
 @socketio.on("connect")
 def sio_connect():
     emit("connected", {"message":"ok"})
 
+# --------------------
+# Error Handlers
+# --------------------
+@app.errorhandler(RequestEntityTooLarge)
+def handle_too_large(e):
+    # フロントは status===413 を見て「ファイルサイズが大きすぎます」を表示
+    return jsonify({"error":"file_too_large"}), 413
+
+# --------------------
+# Health & Init
+# --------------------
 @app.get("/api/health")
 def health():
     return jsonify({"status":"ok"})

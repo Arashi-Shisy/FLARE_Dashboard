@@ -7,11 +7,13 @@
       <p style="white-space:pre-wrap">{{ event.description }}</p>
       <div v-if="event.location">場所: {{ event.location }}</div>
       <div v-if="event.url"><a :href="event.url" target="_blank" rel="noreferrer">関連リンク</a></div>
+
       <div style="margin-top:.75rem">
         <button @click="toggle">{{ event.going ? '参加取消' : '参加する' }}</button>
         <span class="badge" style="margin-left:.5rem">参加者 {{ attendeeCount }} 名</span>
       </div>
     </div>
+
     <div class="card" style="margin-top:1rem">
       <h3 style="margin:0 0 .5rem 0">参加者リスト（{{ attendeeCount }}）</h3>
       <div v-if="attendees.length === 0" class="hint">まだ参加者はいません</div>
@@ -27,15 +29,19 @@
     </div>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted } from 'vue'
 import { api } from '../utils/api'
 import { useRoute } from 'vue-router'
+import { toast } from '../utils/toast'
+
 const route = useRoute()
 const event = ref(null)
 const attendees = ref([])
 const attendeeCount = ref(0)
 const placeholder = '/img/avatar_placeholder.png'
+
 async function loadEvent(){
   const { data } = await api.get(`/api/events/${route.params.id}`)
   event.value = data.event
@@ -52,8 +58,13 @@ async function load(){
   await Promise.all([loadEvent(), loadAttendees()])
 }
 async function toggle(){
-  await api.post(`/api/events/${route.params.id}/attend`)
+  const { data } = await api.post(`/api/events/${route.params.id}/attend`)
   await load()
+  if (data?.going) {
+    toast('参加表明しました', 'success')
+  } else {
+    toast('参加を取り消しました', 'info')
+  }
 }
 onMounted(load)
 </script>
