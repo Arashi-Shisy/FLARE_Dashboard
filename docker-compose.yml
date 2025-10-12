@@ -1,0 +1,34 @@
+services:
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=sqlite:////data/flaredb.sqlite
+      - SECRET_KEY=change-me-in-.env
+      - SOCKETIO_ASYNC_MODE=eventlet
+    volumes:
+      - backend_data:/data
+      - uploads:/app/uploads
+    expose:
+      - "8000"
+    command: gunicorn -k eventlet -w 1 -b 0.0.0.0:8000 app:app
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    expose:
+      - "80"
+
+  nginx:
+    build: ./nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  backend_data:
+  uploads:
