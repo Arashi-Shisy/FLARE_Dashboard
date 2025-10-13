@@ -9,7 +9,7 @@
       <div v-if="event.url"><a :href="event.url" target="_blank" rel="noreferrer">関連リンク</a></div>
 
       <div style="margin-top:.75rem">
-        <button @click="toggle">{{ event.going ? '参加取消' : '参加する' }}</button>
+        <button @click="toggle">{{ event.going ? '参加取消' : '参加表明' }}</button>
         <span class="badge" style="margin-left:.5rem">参加者 {{ attendeeCount }} 名</span>
       </div>
     </div>

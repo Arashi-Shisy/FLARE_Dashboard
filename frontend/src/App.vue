@@ -8,7 +8,7 @@
           <RouterLink class="link" to="/events">Events</RouterLink>
           <RouterLink class="link" to="/announcements">News</RouterLink>
           <RouterLink class="link" to="/chat">Chat</RouterLink>
-          <RouterLink class="link" to="/profile">My</RouterLink>
+          <RouterLink class="link" to="/profile">MyPage</RouterLink>
         </div>
       </div>
     </nav>

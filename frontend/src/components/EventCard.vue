@@ -22,7 +22,7 @@
       <!-- 右端：ボタン縦並び（参加トグル→削除）。削除は作成者本人のみ -->
       <div class="event-controls">
         <button class="btn btn-primary" @click="$emit('toggle')">
-          {{ event.going ? '参加取消' : '参加する' }}
+          {{ event.going ? '参加取消' : '参加表明' }}
         </button>
 
         <button

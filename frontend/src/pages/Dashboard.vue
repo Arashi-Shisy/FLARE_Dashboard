@@ -6,7 +6,7 @@
         <EventCard v-for="e in events" :key="e.id" :event="e" @toggle="toggle(e)" />
       </div>
       <div class="card">
-        <h2 style="margin-top:0">最新お知らせ</h2>
+        <h2 style="margin-top:0">最新のお知らせ</h2>
         <ul style="list-style:none;margin:0;padding:0">
           <li v-for="n in announcements" :key="n.id" style="margin:.5rem 0">
             <div style="display:flex; gap:.5rem; align-items:flex-start">
