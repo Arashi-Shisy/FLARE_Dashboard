@@ -141,10 +141,4 @@ async function toggle(e){
 onMounted(load)
 </script>
 
-<style scoped>
-.actions-right{
-  margin-top:.75rem;
-  display:flex;
-  justify-content:flex-end;
-}
-</style>
+

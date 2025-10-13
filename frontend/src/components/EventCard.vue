@@ -73,40 +73,4 @@ async function onDelete() {
 }
 </script>
 
-<style scoped>
-.card.event-card {
-  padding: 12px;
-  border: 1px solid rgba(0,0,0,.1);
-  border-radius: 8px;
-  margin: 8px 0;
-}
-.event-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: flex-start;
-}
-.event-title {
-  font-weight: 600;
-  font-size: 16px;
-  margin-bottom: 4px;
-}
-.hint {
-  font-size: 12px;
-  color: #666;
-}
-.event-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: flex-end;
-}
-.btn {
-  padding: 6px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(0,0,0,.1);
-  cursor: pointer;
-}
-.btn-neutral { background: #eee; }
-.btn-primary { background: #2d6cdf; color: #fff; border-color: rgba(255,255,255,.15); }
-</style>
+
