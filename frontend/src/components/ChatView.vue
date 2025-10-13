@@ -1,9 +1,9 @@
 <template>
   <div class="container">
-    <div class="card" style="height:70vh;display:flex;flex-direction:column">
-      <h3 style="margin-top:0">コミュニティチャット</h3>
+    <div style="height:70vh">
+      <h3 class="u-mt-0">コミュニティチャット</h3>
 
-      <div style="flex:1;overflow:auto;display:flex;flex-direction:column-reverse">
+      <div class="u-flex-1 u-overflow-auto u-flex-col-reverse">
         <div
           v-for="m in messages"
           :key="m.id"
@@ -11,15 +11,15 @@
         >
           <!-- 他人のメッセージ: アバター + 本文 を横並びで表示 -->
           <template v-if="m.user_id !== me?.id">
-            <div style="display:flex; gap:.5rem; align-items:flex-start">
+            <div class="u-flex u-gap-2 u-items-start">
               <img
                 :src="m.user_avatar_url || placeholder"
                 alt=""
-                style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#222;flex:none"
+                class="avatar avatar--sm u-flex-none"
               />
-              <div style="flex:1;min-width:0">
-                <div class="hint">{{ m.user_name || ('ID:' + m.user_id) }}</div>
-                <div style="word-wrap:break-word;white-space:pre-wrap">{{ m.content }}</div>
+              <div class="u-flex-1 u-min-w-0">
+                <div class="u-hint">{{ m.user_name || ('ID:' + m.user_id) }}</div>
+                <div class="u-prewrap">{{ m.content }}</div>
                 <div class="time">{{ new Date(m.created_at).toLocaleString() }}</div>
               </div>
             </div>
@@ -27,14 +27,14 @@
 
           <!-- 自分のメッセージ: 既存の見た目を維持（アバターは出さない） -->
           <template v-else>
-            <div style="word-wrap:break-word;white-space:pre-wrap">{{ m.content }}</div>
+            <div class="u-prewrap">{{ m.content }}</div>
             <div class="time">{{ new Date(m.created_at).toLocaleString() }}</div>
-            <div class="hint"><a href="#" @click.prevent="remove(m)">削除</a></div>
+            <div class="u-hint"><a href="#" @click.prevent="remove(m)">削除</a></div>
           </template>
         </div>
       </div>
 
-      <div style="display:flex;gap:.5rem">
+      <div class="u-flex u-gap-2">
         <input v-model="text" placeholder="メッセージを入力..." @keyup.enter="send"/>
         <button @click="send">送信</button>
       </div>

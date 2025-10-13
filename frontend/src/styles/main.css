@@ -1,5 +1,23 @@
 @import "./foundation/_variables.css";
 @import "./foundation/_base.css";
+
+/* Layout */
+@import "./layout/_grid.css";
+@import "./layout/_nav.css";
+
+/* Components */
+@import "./object/component/_avatar.css";
 @import "./object/component/_button.css";
 @import "./object/component/_card.css";
+@import "./object/component/_forms.css";
+
+/* Utilities */
+@import "./object/utility/_utilities.css";
+
+/* Project */
+@import "./object/project/_events.css";
+@import "./object/project/_announcements.css";
+@import "./object/project/_chat.css";
+
+/* Legacy (kept temporarily for compatibility) */
 @import "./object/project/_project-legacy.css";

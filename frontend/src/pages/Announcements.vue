@@ -1,24 +1,24 @@
 <template>
   <div class="container">
     <div class="card">
-      <h2 style="margin-top:0">お知らせ</h2>
+      <h2 class="u-mt-0">お知らせ</h2>
 
-      <div style="display:flex; gap:.5rem">
-        <input v-model="text" placeholder="お知らせ内容" style="flex:1" />
+      <div class="u-flex u-gap-2">
+        <input v-model="text" placeholder="お知らせ内容" class="u-flex-1" />
         <button @click="post">投稿</button>
       </div>
 
-      <div v-for="n in items" :key="n.id" class="card" style="margin:.5rem 0;background:#161616">
-        <div style="display:flex; gap:.75rem; align-items:flex-start">
-          <img :src="n.user_avatar_url || placeholder" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;background:#222" />
-          <div style="flex:1">
-            <div style="font-weight:600">{{ n.text }}</div>
-            <div class="hint">投稿者: {{ n.user_name || ('ID:' + n.user_id) }}</div>
+      <div v-for="n in items" :key="n.id">
+        <div class="u-flex u-gap-3 u-items-start">
+          <img :src="n.user_avatar_url || placeholder" alt="" class="avatar avatar--md" />
+          <div class="u-flex-1">
+            <div class="u-fw-600">{{ n.text }}</div>
+            <div class="u-hint">投稿者: {{ n.user_name || ('ID:' + n.user_id) }}</div>
             <div class="time">{{ new Date(n.created_at).toLocaleString() }}</div>
 
             <!-- ★ 作成者本人のみ「削除」ボタンを表示 -->
-            <div v-if="me && me.id === n.user_id" style="margin-top:.5rem">
-              <button @click="remove(n)" style="background:#2a2a2a;border:1px solid #444;color:#ddd">削除</button>
+            <div v-if="me && me.id === n.user_id" class="u-mt-2">
+              <button @click="remove(n)" class="btn btn-neutral">削除</button>
             </div>
           </div>
         </div>

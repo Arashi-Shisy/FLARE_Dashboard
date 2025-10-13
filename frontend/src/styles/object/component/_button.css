@@ -1,5 +1,20 @@
-.btn{padding:6px 10px;border-radius:6px;border:1px solid rgba(0,0,0,.1);cursor:pointer}
-.btn-neutral{background:#eee}
-.btn-primary{background:#2d6cdf;color:#fff;border-color:rgba(255,255,255,.15)}
-.btn-danger{background:#b64c4c;color:#fff;border-color:rgba(255,255,255,.15)}
-.btn-ghost{background:transparent;border:1px dashed rgba(255,255,255,.25)}
+.btn {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: linear-gradient(90deg, var(--flare-a), var(--flare-b), var(--flare-c));
+  color: #fff;
+  cursor: pointer;
+}
+.btn:disabled{ opacity:.6; cursor:not-allowed }
+
+.btn-neutral {
+  background: transparent;
+  border: 1px dashed var(--color-border);
+}
+
+.btn-danger {
+  background: var(--danger);
+  border-color: rgba(0,0,0,.2);
+}
+.btn-primary { /* alias for gradient */ }

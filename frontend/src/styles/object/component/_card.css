@@ -1,1 +1,7 @@
-.card{border:1px solid rgba(0,0,0,.1);border-radius:8px;background:rgba(255,255,255,.02)}
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,.03);
+  box-shadow: var(--shadow-1);
+  padding: var(--space-4);
+}

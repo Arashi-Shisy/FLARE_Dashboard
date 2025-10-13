@@ -1,27 +1,27 @@
 <template>
   <div class="container">
     <div class="card" v-if="event">
-      <h2 style="margin-top:0">{{ event.name }}</h2>
-      <div class="hint">主催: {{ event.created_by_name || ('ID:' + event.created_by) }}</div>
-      <div class="hint">開始: {{ new Date(event.start_at).toLocaleString() }} / 終了: {{ new Date(event.end_at).toLocaleString() }}</div>
-      <p style="white-space:pre-wrap">{{ event.description }}</p>
+      <h2 class="u-mt-0">{{ event.name }}</h2>
+      <div class="u-hint">主催: {{ event.created_by_name || ('ID:' + event.created_by) }}</div>
+      <div class="u-hint">開始: {{ new Date(event.start_at).toLocaleString() }} / 終了: {{ new Date(event.end_at).toLocaleString() }}</div>
+      <p class="u-prewrap">{{ event.description }}</p>
       <div v-if="event.location">場所: {{ event.location }}</div>
       <div v-if="event.url"><a :href="event.url" target="_blank" rel="noreferrer">関連リンク</a></div>
 
-      <div style="margin-top:.75rem">
+      <div class="u-mt-3">
         <button @click="toggle">{{ event.going ? '参加取消' : '参加表明' }}</button>
-        <span class="badge" style="margin-left:.5rem">参加者 {{ attendeeCount }} 名</span>
+        <span class="badge u-ml-2">参加者 {{ attendeeCount }} 名</span>
       </div>
     </div>
 
-    <div class="card" style="margin-top:1rem">
-      <h3 style="margin:0 0 .5rem 0">参加者リスト（{{ attendeeCount }}）</h3>
-      <div v-if="attendees.length === 0" class="hint">まだ参加者はいません</div>
-      <ul v-else style="list-style:none;padding:0;margin:0">
-        <li v-for="a in attendees" :key="a.user_id" style="padding:.5rem 0;border-bottom:1px solid #333;display:flex;gap:.75rem;align-items:center">
-          <img :src="a.avatar_url || placeholder" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#222" />
-          <div style="flex:1">
-            <div style="font-weight:600">{{ a.user_name || ('ID:' + a.user_id) }}</div>
+    <div>
+      <h3 class="u-mb-2">参加者リスト（{{ attendeeCount }}）</h3>
+      <div v-if="attendees.length === 0" class="u-hint">まだ参加者はいません</div>
+      <ul v-else class="u-list-reset">
+        <li v-for="a in attendees" :key="a.user_id" class="u-py-2 u-border-b u-flex u-gap-3 u-items-center">
+          <img :src="a.avatar_url || placeholder" alt="" class="avatar avatar--sm" />
+          <div class="u-flex-1">
+            <div class="u-fw-600">{{ a.user_name || ('ID:' + a.user_id) }}</div>
             <div class="time">参加: {{ new Date(a.joined_at).toLocaleString() }}</div>
           </div>
         </li>

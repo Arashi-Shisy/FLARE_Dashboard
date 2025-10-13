@@ -1,0 +1,17 @@
+.nav {
+  position: sticky; top: 0;
+  z-index: 1000;
+  background: linear-gradient(90deg, var(--flare-a), var(--flare-b), var(--flare-c));
+  border-bottom: 1px solid rgba(0,0,0,.2);
+}
+
+.nav-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  inline-size: min(1100px, 92vw);         /* コンテナと同じ割合＆中央寄せ */
+  margin-inline: auto;
+  padding: 10px 16px;
+}
+
+.brand { font-weight: 700 }
+.link { padding: 6px 10px; border-radius: var(--radius-sm); opacity: .9 }
+.link:hover, .link.active { background: rgba(0,0,0,.15); opacity: 1 }

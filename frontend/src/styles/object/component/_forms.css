@@ -1,0 +1,2 @@
+.form-grid { display:grid; gap: var(--space-4) }
+.form-actions { display:flex; gap: var(--space-3) }

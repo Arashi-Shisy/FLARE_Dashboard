@@ -1,23 +1,23 @@
 <template>
   <div class="container">
     <div class="card">
-      <h2 style="margin-top:0">マイページ</h2>
+      <h2 class="u-mt-0">マイページ</h2>
 
-      <div style="display:flex; gap:1rem; align-items:center">
-        <img :src="me?.avatar_url || fallback" alt="avatar" style="width:72px;height:72px;border-radius:50%;object-fit:cover;background:#222" />
+      <div class="u-flex u-gap-4 u-items-center">
+        <img :src="me?.avatar_url || fallback" alt="avatar" class="avatar avatar--lg" />
         <div>
-          <div style="font-weight:700">{{ me?.username }}</div>
-          <div class="hint">生年月日: <input type="date" v-model="form.birthday" /></div>
-          <div class="hint"><label><input type="checkbox" v-model="form.notifications_enabled" /> ブラウザ通知</label></div>
+          <div class="u-fw-700">{{ me?.username }}</div>
+          <div class="u-hint">生年月日: <input type="date" v-model="form.birthday" /></div>
+          <div class="u-hint"><label><input type="checkbox" v-model="form.notifications_enabled" /> ブラウザ通知</label></div>
         </div>
       </div>
 
-      <div style="margin-top:1rem">
-        <label class="hint">プロフィール画像を選択</label>
+      <div class="u-mt-4">
+        <label class="u-hint">プロフィール画像を選択</label>
         <input type="file" accept="image/*" @change="onFile" />
       </div>
 
-      <div style="margin-top:1rem; display:flex; gap:.5rem">
+      <div class="u-mt-4 u-flex u-gap-2">
         <button @click="save" class="btn btn-primary">保存</button>
         <button @click="logout" class="btn btn-neutral">ログアウト</button>
       </div>

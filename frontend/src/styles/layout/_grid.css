@@ -1,0 +1,11 @@
+/* 画面幅に対して常に一定割合で中央寄せ（92vw、上限1100px） */
+.container {
+  inline-size: min(1100px, 92vw);
+  margin-inline: auto;
+  padding-inline: 16px;
+  padding-block-end: var(--space-8);
+}
+
+/* グリッド */
+.row { display: flex; gap: var(--space-4); flex-wrap: wrap }
+.col { flex: 1 1 280px }

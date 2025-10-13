@@ -4,17 +4,17 @@
       <!-- 左：イベント情報 -->
       <div class="event-info">
         <div class="event-title" :title="event.name">{{ event.name }}</div>
-        <div class="hint">
+        <div class="u-hint">
           {{ new Date(event.start_at).toLocaleString() }} 〜 {{ new Date(event.end_at).toLocaleString() }}
         </div>
-        <div class="hint">
+        <div class="u-hint">
           主催: {{ event.created_by_name || ('ID:' + event.created_by) }}
         </div>
 
-        <div v-if="event.location" class="hint" style="margin-top:.25rem">
+        <div v-if="event.location">
           場所: {{ event.location }}
         </div>
-        <div v-if="event.url" class="hint" style="margin-top:.25rem">
+        <div v-if="event.url">
           <a :href="event.url" target="_blank" rel="noreferrer">関連リンク</a>
         </div>
       </div>

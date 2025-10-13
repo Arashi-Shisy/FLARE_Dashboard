@@ -3,8 +3,8 @@
     <nav class="nav">
       <div class="nav-inner">
         <div class="brand">FLARE Dashboard</div>
-        <div style="display:flex;gap:.5rem">
-          <RouterLink class="link" :class="{active: $route.path==='/' }" to="/">Home</RouterLink>
+        <div class="u-flex u-gap-2">
+          <RouterLink class="link" to="/">Home</RouterLink>
           <RouterLink class="link" to="/events">Events</RouterLink>
           <RouterLink class="link" to="/announcements">News</RouterLink>
           <RouterLink class="link" to="/chat">Chat</RouterLink>

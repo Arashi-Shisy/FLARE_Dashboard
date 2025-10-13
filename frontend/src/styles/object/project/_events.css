@@ -1,0 +1,10 @@
+/* Event card */
+.event-card { display:flex; gap: var(--space-4); align-items: stretch }
+.event-card .event-row{ display:flex; gap: var(--space-4); flex:1 }
+.event-card .event-info{ flex: 1 1 auto }
+.event-card .event-title{ font-size: var(--fs-lg); font-weight: 700; margin-bottom: var(--space-1) }
+.event-card .event-actions{ display:flex; flex-direction: column; gap: var(--space-2) }
+@media (max-width: 640px){
+  .event-card{ flex-direction: column }
+  .event-card .event-actions{ flex-direction: row }
+}

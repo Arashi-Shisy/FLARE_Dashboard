@@ -1,51 +1,51 @@
 <template>
   <div class="container">
-    <h2 style="margin-top:0">イベント一覧</h2>
+    <h2 class="u-mt-0">イベント一覧</h2>
 
     <!-- ▼ 新規イベント作成フォーム -->
     <div>
-      <h3 style="margin:.2rem 0 .8rem 0">新規イベント</h3>
+      <h3 class="u-mt-0 u-mb-3">新規イベント</h3>
       <div class="row">
         <div class="col">
-          <label class="hint">イベント名</label>
+          <label class="u-hint">イベント名</label>
           <input v-model="form.name" placeholder="例: FLARE ミートアップ" />
         </div>
         <div class="col">
-          <label class="hint">開始日時</label>
+          <label class="u-hint">開始日時</label>
           <input v-model="form.start_at" type="datetime-local" />
         </div>
         <div class="col">
-          <label class="hint">終了日時</label>
+          <label class="u-hint">終了日時</label>
           <input v-model="form.end_at" type="datetime-local" />
         </div>
       </div>
 
-      <div class="row" style="margin-top:.5rem">
+      <div>
         <div class="col">
-          <label class="hint">場所（任意）</label>
+          <label class="u-hint">場所（任意）</label>
           <input v-model="form.location" placeholder="例: オンライン / 会議室A" />
         </div>
         <div class="col">
-          <label class="hint">関連URL（任意）</label>
+          <label class="u-hint">関連URL（任意）</label>
           <input v-model="form.url" placeholder="https://..." />
         </div>
       </div>
 
-      <div style="margin-top:.5rem">
-        <label class="hint">説明（任意）</label>
+      <div class="u-mt-2">
+        <label class="u-hint">説明（任意）</label>
         <textarea v-model="form.description" rows="3" placeholder="イベントの説明を入力..."></textarea>
       </div>
 
-      <div class="actions-right" style="gap:.5rem">
+      <div class="actions-right u-gap-2">
         <button class="btn btn-primary" @click="create">作成</button>
         <button class="btn btn-neutral" @click="resetForm">クリア</button>
       </div>
     </div>
 
     <!-- ▼ 一覧 -->
-    <div v-if="events.length === 0" class="hint">イベントはまだありません</div>
+    <div v-if="events.length === 0" class="u-hint">イベントはまだありません</div>
 
-    <div v-for="e in events" :key="e.id" class="card" style="margin:.5rem 0;background:#161616">
+    <div v-for="e in events" :key="e.id">
       <!-- 参加/削除は EventCard の右端ボタン列に統一（削除は作成者のみ表示） -->
       <EventCard :event="e" @toggle="toggle(e)" />
 

@@ -15,6 +15,7 @@ docker compose up -d
 
 # 更新時
 docker compose build frontend
+docker compose build frontend --no-cache
 docker compose up -d
 
 docker compose build backend

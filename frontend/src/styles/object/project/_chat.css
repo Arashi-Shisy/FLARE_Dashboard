@@ -1,0 +1,4 @@
+.chat{ display:flex; flex-direction: column; gap: var(--space-3) }
+.chat-input{ display:flex; gap: var(--space-2) }
+.chat-log{ display:flex; flex-direction: column; gap: var(--space-2); max-height: 60vh; overflow:auto }
+.chat-msg{ padding: var(--space-2) var(--space-3); border-radius: var(--radius-lg); background: var(--color-surface); border:1px solid var(--color-border) }

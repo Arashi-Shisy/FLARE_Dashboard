@@ -2,18 +2,18 @@
   <div class="container">
     <div class="grid2">
       <div class="card">
-        <h2 style="margin-top:0">今週のイベント</h2>
+        <h2 class="u-mt-0">今週のイベント</h2>
         <EventCard v-for="e in events" :key="e.id" :event="e" @toggle="toggle(e)" />
       </div>
       <div class="card">
-        <h2 style="margin-top:0">最新のお知らせ</h2>
-        <ul style="list-style:none;margin:0;padding:0">
-          <li v-for="n in announcements" :key="n.id" style="margin:.5rem 0">
-            <div style="display:flex; gap:.5rem; align-items:flex-start">
-              <img :src="n.user_avatar_url || placeholder" alt="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;background:#222" />
+        <h2 class="u-mt-0">最新のお知らせ</h2>
+        <ul class="u-list-reset">
+          <li v-for="n in announcements" :key="n.id" class="u-my-2">
+            <div class="u-flex u-gap-2 u-items-start">
+              <img :src="n.user_avatar_url || placeholder" alt="" class="avatar avatar--xs" />
               <div>
-                <div style="font-weight:600">{{ n.text }}</div>
-                <div class="hint">投稿者: {{ n.user_name || ('ID:' + n.user_id) }}</div>
+                <div class="u-fw-600">{{ n.text }}</div>
+                <div class="u-hint">投稿者: {{ n.user_name || ('ID:' + n.user_id) }}</div>
                 <div class="time">{{ new Date(n.created_at).toLocaleString() }}</div>
               </div>
             </div>
