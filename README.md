@@ -61,12 +61,29 @@ docker compose logs backend -f
 
 ## 6. テスト
 
-- Backend 　 UT
+- Backend UT
 
+```bash
 cd backend
 $env:DISABLE_SCHEDULER="1"
 pytest
+```
 
 - Frontend UT
-  cd frontend
-  npm run test
+
+```bash
+cd frontend
+npm run test         # = vitest --run (UTのみ)
+npm run test:watch   # ウォッチ
+npm run test:ui      # Vitest UI
+```
+
+- E2E
+
+```bash
+docker compose up -d   # http://localhost:8080
+
+cd frontend
+npm run e2e
+npm run e2e:ui
+```
