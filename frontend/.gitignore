@@ -1,3 +1,4 @@
 # Playwright reports
 playwright-report/
 test-results/
+.auth/

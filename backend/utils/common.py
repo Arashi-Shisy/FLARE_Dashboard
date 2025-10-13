@@ -1,4 +1,5 @@
 # backend/utils/common.py
+# 日付の正規化・シリアライザなどの共通処理
 from datetime import datetime, timedelta, timezone
 from extensions import db
 from models import User, Event, EventAttendee

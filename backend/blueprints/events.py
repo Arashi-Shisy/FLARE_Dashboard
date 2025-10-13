@@ -148,14 +148,26 @@ def attend_toggle(event_id):
     if att:
         db.session.delete(att)
         db.session.commit()
-        return jsonify({"message":"left"})
+        return jsonify({"message":"left", "going": False})
     else:
         att = EventAttendee(user_id=uid, event_id=event_id)
         db.session.add(att)
         db.session.commit()
-        return jsonify({"message":"joined"})
+        return jsonify({"message":"joined", "going": True})
 
 @bp.get("/api/events/<int:event_id>/attendees")
+@login_required
+def attendees(event_id):
+    # 参加者を新しい順に取得
+    items = (
+        EventAttendee.query
+        .filter_by(event_id=event_id)
+        .order_by(EventAttendee.created_at.desc())
+        .all()
+    )
+    res = [serialize_attendee(a) for a in items]
+    # テストが期待する "count" を追加
+    return jsonify({"items": res, "count": len(res)})
 @login_required
 def attendees(event_id):
     items = EventAttendee.query.filter_by(event_id=event_id).order_by(EventAttendee.created_at.desc()).all()
