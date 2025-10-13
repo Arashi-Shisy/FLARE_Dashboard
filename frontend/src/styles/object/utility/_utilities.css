@@ -69,6 +69,6 @@
 .u-flex-col-reverse{ display:flex; flex-direction: column-reverse }
 .u-maxw-420{ max-width:420px }
 
-
+.u-vh80{height: 80vh}
 
 .u-ml-2{ margin-left: var(--space-2) }

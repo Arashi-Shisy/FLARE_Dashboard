@@ -3,7 +3,7 @@
     <div style="height:70vh">
       <h3 class="u-mt-0">コミュニティチャット</h3>
 
-      <div class="u-flex-1 u-overflow-auto u-flex-col-reverse">
+      <div class="u-vh80 u-flex-1 u-overflow-auto u-flex-col-reverse">
         <div
           v-for="m in messages"
           :key="m.id"
