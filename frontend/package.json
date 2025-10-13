@@ -12,7 +12,9 @@
     "test:watch": "vitest --watch",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
-    "e2e:ui": "playwright test --ui"
+    "e2e:ui": "playwright test --ui --project=chromium --project=auth-flow",
+    "e2e:ui:all": "playwright test --ui --project=setup --project=chromium --project=auth-flow",
+    "e2e:login": "playwright test --project=setup"
   },
   "dependencies": {
     "axios": "^1.7.7",

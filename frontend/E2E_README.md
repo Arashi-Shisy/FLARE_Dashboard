@@ -1,32 +1,32 @@
-# E2E Patch (Playwright) - Login Setup + Split Specs
+# E2E Patch v2 (UIモードの見え方改善 & ルーティング修正)
 
-## 使い方
-1. プロジェクト直下にこの ZIP を展開し、`frontend/` の差分を反映
-2. アプリ起動（http://localhost:8080）
-   ```bash
-   docker compose up -d
-   ```
-3. 依存インストール & Playwright セットアップ
-   ```bash
-   cd frontend
-   npm i
-   npx playwright install
-   ```
-4. 実行
-   ```bash
-   npm run e2e           # ヘッドレス
-   npm run e2e:headed    # ヘッドあり
-   npm run e2e:ui        # UI モード
-   ```
+## ルーティング修正点
+- マイページ: `/mypage` → **`/profile`**
+- お知らせ: `/news` → **`/announcements`**
 
-## ログインセットアップの仕組み
-- `projects.setup` が最初に `e2e/setup/auth.setup.e2e.js` を実行し、
-  - 新規ユーザーを登録
-  - `e2e/.auth/user.json` に storageState を保存
-- 以降のシナリオ（Chromium プロジェクト）はこの storageState を再利用して **常にログイン済み** で開始します。
-- 例外として `01_auth_flow.e2e.spec.js` は **未ログイン前提のリダイレクト/登録フロー** を確認するために、
-  - 別プロジェクト `auth-flow` として `storageState: undefined` で実行します。
+## UIモードでテストが1個だけに見える理由
+- Playwright UI は **選択中のプロジェクト**だけをリスト表示します。
+- 先頭プロジェクトが `setup` だと、UI 初期表示は **setup（1件）** のみになります。  
+  → 本パッチでは **`chromium` を先頭**にし、UI で最初からメインのテストが見えるようにしました。
+- さらに、`package.json` に以下のスクリプトを追加：
+  - `e2e:ui` : `chromium` と `auth-flow` を UI に読み込み
+  - `e2e:ui:all` : `setup` も含めた全プロジェクトを UI に読み込み
+  - `e2e:login` : セッション作成だけ先に実行（UI起動前の下準備に）
 
-## 備考
-- 画面遷移は安定性のため一部で `page.goto('/path')` を用いています。
-- 削除操作は confirm ダイアログが出るため、直前に `page.once('dialog', d => d.accept())` で承認しています。
+## 実行例
+```bash
+docker compose up -d   # http://localhost:8080
+
+cd frontend
+npm i
+npx playwright install
+
+# まずログイン状態を作っておく（UI起動前に一度だけ）
+npm run e2e:login
+
+# UIモード（メインのテストのみ表示）
+npm run e2e:ui
+
+# すべてのプロジェクトをUIに表示したい場合
+npm run e2e:ui:all
+```

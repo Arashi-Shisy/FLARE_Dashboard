@@ -7,7 +7,6 @@ const username = `e2e_user_${unique}`;
 const password = 'P@ssw0rd!';
 
 test('setup: register and save storageState', async ({ page, context }) => {
-  // Go root -> login -> register
   await page.goto('/');
   await expect(page).toHaveURL(/\/login$/);
   await page.getByRole('link', { name: 'ユーザー登録' }).click();
@@ -20,9 +19,6 @@ test('setup: register and save storageState', async ({ page, context }) => {
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole('heading', { name: '今週のイベント' })).toBeVisible();
 
-  // Persist storage
   await context.storageState({ path: 'e2e/.auth/user.json' });
-
-  // (Optional) Write credentials for debugging (do NOT commit to VCS)
   fs.writeFileSync('e2e/.auth/creds.json', JSON.stringify({ username, password }, null, 2));
 });

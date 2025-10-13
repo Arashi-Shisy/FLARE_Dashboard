@@ -13,32 +13,27 @@ export default defineConfig({
     video: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
+  // Put main projects first so UI mode shows them by default
   projects: [
-    // 1) Setup: login once and write storage to e2e/.auth/user.json
+    // Main (logged-in) tests reuse storageState
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/user.json' },
+      dependencies: ['setup'],
+      testIgnore: ['e2e/setup/**', 'e2e/01_auth_flow.e2e.spec.js'],
+    },
+    // Auth-flow (unauthenticated) runs without storage
+    {
+      name: 'auth-flow',
+      use: { ...devices['Desktop Chrome'], storageState: undefined },
+      testMatch: ['e2e/01_auth_flow.e2e.spec.js'],
+      dependencies: ['setup'],
+    },
+    // Setup: logs in once and saves storageState
     {
       name: 'setup',
       testMatch: ['e2e/setup/auth.setup.e2e.js'],
       use: { ...devices['Desktop Chrome'], storageState: undefined },
-    },
-    // 2) Main: reuse saved auth for all scenario tests
-    {
-      name: 'chromium',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: 'e2e/.auth/user.json',
-      },
-      dependencies: ['setup'],
-      testIgnore: ['e2e/setup/**', 'e2e/01_auth_flow.e2e.spec.js'], // auth-flow runs without storage
-    },
-    // 3) Auth-flow project: explicitly start without storage state
-    {
-      name: 'auth-flow',
-      use: {
-        ...devices['Desktop Chrome'],
-        storageState: undefined,
-      },
-      testMatch: ['e2e/01_auth_flow.e2e.spec.js'],
-      dependencies: ['setup'], // keep order predictable (optional)
     },
   ],
 });
