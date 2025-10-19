@@ -100,5 +100,6 @@ npm run e2e:ui
     git pull
 
 3.  起動中のコンテナに反映（本番専用起動コマンド）
+    docker compose down
     docker compose build
     docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate caddy

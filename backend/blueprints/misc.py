@@ -16,9 +16,9 @@ def home():
     } for a in anns]
 
     now = datetime.utcnow()
-    start = now - timedelta(days=now.weekday())
+    start = now
     end = start + timedelta(days=7)
-    evs = Event.query.filter(Event.start_at >= start, Event.start_at < end).all()
+    evs = Event.query.filter(Event.end_at >= start, Event.start_at < end).all()
     ev_res = [serialize_event(e) for e in evs]
 
     return jsonify({"announcements": ann_res, "events": ev_res})
