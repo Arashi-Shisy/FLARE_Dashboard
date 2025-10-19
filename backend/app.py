@@ -23,7 +23,7 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = SECRET_KEY
     app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=31)
-    app.config["MAX_CONTENT_LENGTH"] = MAX_UPLOAD_MB * 1024 * 1024
+    app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024
     app.config["UPLOAD_FOLDER"] = UPLOAD_DIR
 
     CORS(app, supports_credentials=True)
