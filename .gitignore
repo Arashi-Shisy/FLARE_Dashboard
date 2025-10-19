@@ -3,3 +3,5 @@ node_modules/
 __pycache__/
 .pytest_cache/
 playwright-report/
+.env.prod
+data/

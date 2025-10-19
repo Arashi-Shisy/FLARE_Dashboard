@@ -88,3 +88,10 @@ cd frontend
 npm run e2e
 npm run e2e:ui
 ```
+
+## 7. デプロイ
+
+### SSH 接続
+
+cd "C:\Users\user\.ssh"
+ssh -i .\kagoya-login.key ubuntu@133.18.110.66
