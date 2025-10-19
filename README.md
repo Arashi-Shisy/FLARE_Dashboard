@@ -91,7 +91,13 @@ npm run e2e:ui
 
 ## 7. デプロイ
 
-### SSH 接続
+1.  ローカルからサーバーに SSH 接続
+    cd "C:\Users\user\.ssh"
+    ssh -i .\kagoya-login.key ubuntu@133.18.110.66
 
-cd "C:\Users\user\.ssh"
-ssh -i .\kagoya-login.key ubuntu@133.18.110.66
+2.  サーバー上で git pull
+    cd ~/apps/flare/FLARE_Dashboard/FLARE_Dashboard.git
+    git pull
+
+3.  起動中のコンテナに反映（本番専用起動コマンド）
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d
