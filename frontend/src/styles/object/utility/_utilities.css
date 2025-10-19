@@ -29,7 +29,6 @@
 .u-gap-4{ gap: var(--space-4) }
 
 
-
 /* Axis spacing */
 .u-my-1{ margin-top: var(--space-1); margin-bottom: var(--space-1) }
 .u-my-2{ margin-top: var(--space-2); margin-bottom: var(--space-2) }
@@ -72,3 +71,66 @@
 .u-vh80{height: 80vh}
 
 .u-ml-2{ margin-left: var(--space-2) }
+
+/* 0) もし以前に overflow-x: hidden/clip や text-overflow: ellipsis を入れた場合は打ち消す */
+.nav,
+.nav-inner,
+.nav .u-flex {
+  overflow-x: visible;          /* ← 横は隠さない */
+}
+.nav .u-flex > .link,
+.nav .u-flex > a,
+.nav .u-flex > button {
+  text-overflow: clip;          /* ← …にしない */
+  overflow: visible;            /* ← テキストを隠さない */
+}
+
+/* 1) トップ行は1行固定（リンクは折り返さない） */
+.nav-inner,
+.nav .u-flex {
+  display: flex;
+  flex-wrap: nowrap;            /* ← 1行固定 */
+}
+
+/* 2) Brand は2行OK & 幅を取りすぎない。中身の改行を許可 */
+.nav .brand {
+  flex: 0 1 40%;                /* ← 取りうる最大幅の目安（お好みで 35〜45%） */
+  max-inline-size: 40%;
+  white-space: normal;          /* ← 中のテキストは折り返し可 */
+  overflow-wrap: anywhere;      /* ← 長い単語でも適宜改行 */
+  line-height: 1.15;
+  min-inline-size: 0;
+}
+
+/* 3) 右側リンク群は残り幅を引き受け、隙間・余白・文字サイズを自動で“締める” */
+.nav .u-flex {
+  flex: 1 1 auto;
+  min-inline-size: 0;                 /* ← 内部要素の縮小を許可（重要） */
+  justify-content: flex-end;
+  gap: clamp(2px, 1vw, 12px);         /* ← 画面が狭いほどギャップ縮小 */
+}
+
+/* 4) 各リンク：折り返さず（nowrap）、等分寄りに配置。
+      省略はしない／文字が入らない場合はフォント・パディングをさらに縮小 */
+.nav .u-flex > .link,
+.nav .u-flex > a,
+.nav .u-flex > button {
+  flex: 0 1 auto;                    /* ← 内容幅ベースで縮む。必要なら 1 1 auto にして等分気味に */
+  min-inline-size: 0;                /* ← “最小内容幅”の壁を外す（超重要） */
+  white-space: nowrap;               /* ← 折り返さない＝1行維持 */
+  padding: clamp(4px, 1.2vw, 10px) clamp(6px, 2vw, 14px);
+  font-size: clamp(11px, 1.8vw, 14px);  /* ← 画面が狭いほど文字を縮小（省略なしで収める要） */
+  line-height: 1.1;
+  box-sizing: border-box;
+}
+
+/* 5) さらに狭い超小型端末（例: ≤360px）での最小値を下げる保険 */
+@media (max-width: 360px) {
+  .nav .u-flex { gap: 2px; }
+  .nav .u-flex > .link,
+  .nav .u-flex > a,
+  .nav .u-flex > button {
+    font-size: 10px;                 /* ← 必要なら 9px まで可（可読性と相談） */
+    padding-inline: 6px;
+  }
+}
