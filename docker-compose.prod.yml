@@ -1,0 +1,24 @@
+services:
+  nginx:
+    ports:
+      - "80:80"          # ← 本番は80公開
+      # - "443:443"      # ← すぐTLS化するなら有効化（後述）
+    # 例：健全性確認にヘルスチェックを追加（任意）
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/health || true"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  backend:
+    # 本番で使う .env を読み込む（開発は従来の .env を使用）
+    env_file:
+      - .env.prod
+    # すでに SQLite 永続化済みなら volumes は現状のままでOK
+    # 例: volumes:
+    #   - ./data/instance:/app/instance
+
+  frontend:
+    # 必要に応じて本番用の環境変数をここで上書き
+    env_file:
+      - .env.prod
